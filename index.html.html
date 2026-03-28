@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BourseInfo — Actualités Bourse de Casablanca</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0e14;
+    --bg2: #111520;
+    --bg3: #161b27;
+    --surface: #1a2035;
+    --border: #232c42;
+    --gold: #c9973f;
+    --gold-light: #e8b870;
+    --green: #2dce7a;
+    --red: #f05252;
+    --blue: #4f8ef7;
+    --text: #eaeef7;
+    --text-muted: #7b8aaa;
+    --text-dim: #4a566e;
+    --radius: 12px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── NOISE TEXTURE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── HEADER ─── */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: rgba(11,14,20,0.92);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: auto;
+    padding: 0 24px;
+    height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+  }
+
+  .logo-icon {
+    width: 34px;
+    height: 34px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text);
+    letter-spacing: -0.3px;
+  }
+
+  .logo-text span { color: var(--gold); }
+
+  nav { display: flex; gap: 4px; }
+
+  nav a {
+    color: var(--text-muted);
+    text-decoration: none;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+
+  nav a:hover, nav a.active {
+    color: var(--text);
+    background: var(--surface);
+  }
+
+  nav a.active { color: var(--gold-light); }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 12px;
+    color: var(--text-muted);
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: text;
+    transition: border-color 0.2s;
+    min-width: 180px;
+  }
+
+  .search-box:focus-within { border-color: var(--gold); }
+
+  .search-box input {
+    background: none;
+    border: none;
+    outline: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 13px;
+    width: 100%;
+  }
+
+  .search-box input::placeholder { color: var(--text-dim); }
+
+  /* ─── TICKER TAPE ─── */
+  .ticker-wrap {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+    height: 36px;
+    display: flex;
+    align-items: center;
+  }
+
+  .ticker-label {
+    background: var(--gold);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 0 12px;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    flex-shrink: 0;
+    text-transform: uppercase;
+  }
+
+  .ticker-track {
+    display: flex;
+    gap: 0;
+    animation: ticker 35s linear infinite;
+    white-space: nowrap;
+  }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .ticker-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0 24px;
+    font-size: 12px;
+    font-family: 'DM Mono', monospace;
+    border-right: 1px solid var(--border);
+  }
+
+  .ticker-name { color: var(--text-muted); font-weight: 500; }
+  .ticker-price { color: var(--text); font-weight: 600; }
+  .up { color: var(--green); }
+  .down { color: var(--red); }
+
+  /* ─── HERO SECTION ─── */
+  .hero {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 48px 24px 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .hero-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(201,151,63,0.12);
+    border: 1px solid rgba(201,151,63,0.3);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold-light);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(32px, 5vw, 52px);
+    font-weight: 900;
+    line-height: 1.1;
+    color: var(--text);
+    max-width: 700px;
+    margin-bottom: 16px;
+    letter-spacing: -1px;
+  }
+
+  .hero h1 em {
+    font-style: normal;
+    color: var(--gold);
+    position: relative;
+  }
+
+  .hero-sub {
+    color: var(--text-muted);
+    font-size: 15px;
+    max-width: 480px;
+    font-weight: 300;
+  }
+
+  /* ─── STATS BAR ─── */
+  .stats-bar {
+    max-width: 1200px;
+    margin: 0 auto 40px;
+    padding: 0 24px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    z-index: 1;
+    position: relative;
+  }
+
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s;
+  }
+
+  .stat-card:hover { border-color: var(--gold); }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--gold), transparent);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-dim);
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .stat-value {
+    font-family: 'DM Mono', monospace;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .stat-change {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  /* ─── LAYOUT ─── */
+  .main-layout {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 24px 80px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 32px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ─── SECTION HEADERS ─── */
+  .section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .section-title::before {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 22px;
+    background: var(--gold);
+    border-radius: 2px;
+  }
+
+  .section-more {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--gold);
+    text-decoration: none;
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: gap 0.2s;
+  }
+
+  .section-more:hover { gap: 8px; }
+
+  /* ─── FEATURED ARTICLE ─── */
+  .featured-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    cursor: pointer;
+    transition: border-color 0.25s, transform 0.25s;
+    animation: fadeUp 0.5s ease both;
+  }
+
+  .featured-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+  }
+
+  .featured-img {
+    width: 100%;
+    height: 200px;
+    background: linear-gradient(135deg, #1a2540 0%, #0f1a30 50%, #1a2035 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .featured-img-pattern {
+    position: absolute;
+    inset: 0;
+    background-image: 
+      radial-gradient(circle at 20% 50%, rgba(201,151,63,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 20%, rgba(79,142,247,0.1) 0%, transparent 50%);
+  }
+
+  .featured-img-text {
+    font-family: 'DM Mono', monospace;
+    font-size: 48px;
+    font-weight: 500;
+    color: rgba(201,151,63,0.3);
+    letter-spacing: -3px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .featured-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: var(--gold);
+    color: #000;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 4px;
+  }
+
+  .featured-body { padding: 24px; }
+
+  .featured-body h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--text);
+    margin-bottom: 10px;
+  }
+
+  .featured-body p {
+    color: var(--text-muted);
+    font-size: 14px;
+    font-weight: 300;
+    margin-bottom: 16px;
+    line-height: 1.7;
+  }
+
+  .article-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .meta-source {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+  }
+
+  .meta-dot { color: var(--text-dim); font-size: 10px; }
+
+  .meta-date {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+
+  .meta-tag {
+    background: rgba(79,142,247,0.12);
+    color: var(--blue);
+    border: 1px solid rgba(79,142,247,0.2);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* ─── NEWS LIST ─── */
+  .news-list { display: flex; flex-direction: column; gap: 12px; }
+
+  .news-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px;
+    cursor: pointer;
+    transition: border-color 0.25s, background 0.25s, transform 0.2s;
+    animation: fadeUp 0.5s ease both;
+    display: flex;
+    gap: 16px;
+    align-items: flex-start;
+    text-decoration: none;
+    color: inherit;
+  }
+
+  .news-card:hover {
+    border-color: rgba(201,151,63,0.5);
+    background: var(--bg3);
+    transform: translateX(4px);
+  }
+
+  .news-number {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    font-weight: 500;
+    width: 20px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+
+  .news-content { flex: 1; min-width: 0; }
+
+  .news-card h3 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+    margin-bottom: 8px;
+    transition: color 0.2s;
+  }
+
+  .news-card:hover h3 { color: var(--gold-light); }
+
+  .news-excerpt {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 300;
+    line-height: 1.6;
+    margin-bottom: 10px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .news-arrow {
+    color: var(--text-dim);
+    font-size: 18px;
+    flex-shrink: 0;
+    transition: color 0.2s, transform 0.2s;
+    padding-top: 2px;
+  }
+
+  .news-card:hover .news-arrow {
+    color: var(--gold);
+    transform: translateX(4px);
+  }
+
+  /* ─── SIDEBAR ─── */
+  .sidebar { display: flex; flex-direction: column; gap: 24px; }
+
+  .sidebar-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .sidebar-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .sidebar-header-dot {
+    width: 6px; height: 6px;
+    background: var(--gold);
+    border-radius: 50%;
+  }
+
+  /* ─── MOVERS TABLE ─── */
+  .mover-row {
+    display: grid;
+    grid-template-columns: 1fr 80px 60px;
+    gap: 8px;
+    align-items: center;
+    padding: 12px 20px;
+    border-bottom: 1px solid rgba(35,44,66,0.6);
+    transition: background 0.2s;
+    cursor: default;
+  }
+
+  .mover-row:last-child { border-bottom: none; }
+  .mover-row:hover { background: var(--bg3); }
+
+  .mover-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .mover-ticker { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 2px; }
+
+  .mover-price {
+    font-family: 'DM Mono', monospace;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text);
+    text-align: right;
+  }
+
+  .mover-change {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: right;
+    padding: 3px 7px;
+    border-radius: 4px;
+  }
+
+  .mover-change.up { color: var(--green); background: rgba(45,206,122,0.1); }
+  .mover-change.down { color: var(--red); background: rgba(240,82,82,0.1); }
+
+  /* ─── MINI CHART ─── */
+  .chart-container { padding: 20px; }
+
+  .chart-svg { width: 100%; height: 80px; overflow: visible; }
+
+  .chart-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+  }
+
+  .chart-labels span {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    color: var(--text-dim);
+  }
+
+  /* ─── CATEGORIES ─── */
+  .categories { padding: 16px 20px; display: flex; flex-wrap: wrap; gap: 8px; }
+
+  .cat-btn {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .cat-btn:hover, .cat-btn.active {
+    background: rgba(201,151,63,0.12);
+    border-color: rgba(201,151,63,0.4);
+    color: var(--gold-light);
+  }
+
+  /* ─── NEWSLETTER ─── */
+  .newsletter { padding: 20px; }
+
+  .newsletter p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+
+  .newsletter-form { display: flex; flex-direction: column; gap: 8px; }
+
+  .newsletter-input {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .newsletter-input:focus { border-color: var(--gold); }
+  .newsletter-input::placeholder { color: var(--text-dim); }
+
+  .newsletter-btn {
+    background: linear-gradient(135deg, var(--gold), var(--gold-light));
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    color: #000;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+
+  .newsletter-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+  /* ─── FILTER TABS ─── */
+  .filter-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 20px;
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 4px;
+  }
+
+  .filter-tab {
+    flex: 1;
+    text-align: center;
+    padding: 7px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+
+  .filter-tab.active {
+    background: var(--surface);
+    color: var(--gold-light);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  }
+
+  /* ─── FOOTER ─── */
+  footer {
+    border-top: 1px solid var(--border);
+    background: var(--bg2);
+    padding: 32px 24px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .footer-inner {
+    max-width: 1200px;
+    margin: auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .footer-copy { font-size: 12px; color: var(--text-dim); }
+  .footer-copy strong { color: var(--text-muted); }
+
+  .footer-links { display: flex; gap: 16px; }
+
+  .footer-links a {
+    font-size: 12px;
+    color: var(--text-dim);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .footer-links a:hover { color: var(--gold); }
+
+  /* ─── ANIMATIONS ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .news-card:nth-child(1) { animation-delay: 0.05s; }
+  .news-card:nth-child(2) { animation-delay: 0.1s; }
+  .news-card:nth-child(3) { animation-delay: 0.15s; }
+  .news-card:nth-child(4) { animation-delay: 0.2s; }
+  .news-card:nth-child(5) { animation-delay: 0.25s; }
+  .news-card:nth-child(6) { animation-delay: 0.3s; }
+  .news-card:nth-child(7) { animation-delay: 0.35s; }
+
+  /* ─── LIVE BADGE ─── */
+  .live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--green);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .live-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* ─── RESPONSIVE ─── */
+  @media (max-width: 900px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .sidebar { order: -1; }
+    .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    nav { display: none; }
+    .search-box { min-width: 140px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-bar { grid-template-columns: 1fr 1fr; }
+    .hero h1 { font-size: 28px; }
+    .featured-body h2 { font-size: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── HEADER ─── -->
+<header>
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">📈</div>
+      <span class="logo-text">Bourse<span>Info</span></span>
+    </a>
+    <nav>
+      <a href="#" class="active">Actualités</a>
+      <a href="#">Marchés</a>
+      <a href="#">Indices</a>
+      <a href="#">Entreprises</a>
+      <a href="#">Analyses</a>
+    </nav>
+    <div class="header-right">
+      <div class="search-box">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" placeholder="Rechercher...">
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ─── TICKER ─── -->
+<div class="ticker-wrap">
+  <div class="ticker-label">Live</div>
+  <div style="overflow:hidden;flex:1">
+    <div class="ticker-track" id="ticker">
+      <!-- JS fills this -->
+    </div>
+  </div>
+</div>
+
+<!-- ─── HERO ─── -->
+<div class="hero">
+  <div class="hero-label">
+    <div class="live-dot"></div>
+    <span>Actualités en temps réel</span>
+  </div>
+  <h1>Bourse de <em>Casablanca</em><br>— L'essentiel</h1>
+  <p class="hero-sub">Suivez les dernières nouvelles, analyses et mouvements des marchés marocains.</p>
+</div>
+
+<!-- ─── STATS BAR ─── -->
+<div class="stats-bar">
+  <div class="stat-card">
+    <div class="stat-label">MASI</div>
+    <div class="stat-value">13 842.17</div>
+    <div class="stat-change up">▲ +0.87%</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">MADEX</div>
+    <div class="stat-value">11 294.55</div>
+    <div class="stat-change up">▲ +0.64%</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Volume (MAD)</div>
+    <div class="stat-value">248 M</div>
+    <div class="stat-change" style="color:var(--text-dim)">Session du jour</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-label">Sociétés cotées</div>
+    <div class="stat-value">77</div>
+    <div class="stat-change" style="color:var(--text-dim)">Bourse Casablanca</div>
+  </div>
+</div>
+
+<!-- ─── MAIN CONTENT ─── -->
+<div class="main-layout">
+  <!-- LEFT: News Feed -->
+  <div>
+    <!-- Featured -->
+    <div class="section-header">
+      <div class="section-title">À la Une</div>
+      <div class="live-badge"><div class="live-dot"></div> Live</div>
+    </div>
+
+    <div class="featured-card" onclick="openArticle(news[0])">
+      <div class="featured-img">
+        <div class="featured-img-pattern"></div>
+        <div class="featured-img-text">MASI</div>
+        <div class="featured-badge">⭐ À la Une</div>
+      </div>
+      <div class="featured-body">
+        <h2 id="feat-title">Chargement…</h2>
+        <p id="feat-excerpt"></p>
+        <div class="article-meta">
+          <span class="meta-source" id="feat-source"></span>
+          <span class="meta-dot">•</span>
+          <span class="meta-date" id="feat-date"></span>
+          <span class="meta-tag" id="feat-tag"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs">
+      <div class="filter-tab active" onclick="filterNews('all', this)">Toutes</div>
+      <div class="filter-tab" onclick="filterNews('indices', this)">Indices</div>
+      <div class="filter-tab" onclick="filterNews('societes', this)">Sociétés</div>
+      <div class="filter-tab" onclick="filterNews('ipo', this)">IPO / OPV</div>
+      <div class="filter-tab" onclick="filterNews('analyse', this)">Analyses</div>
+    </div>
+
+    <div class="section-header">
+      <div class="section-title">Dernières Nouvelles</div>
+      <a class="section-more" href="#">Tout voir →</a>
+    </div>
+
+    <div class="news-list" id="news-list">
+      <!-- filled by JS -->
+    </div>
+  </div>
+
+  <!-- RIGHT: Sidebar -->
+  <div class="sidebar">
+
+    <!-- Top Movers -->
+    <div class="sidebar-card">
+      <div class="sidebar-header">
+        <div class="sidebar-header-dot"></div>
+        Meilleures Performances
+      </div>
+      <div id="movers-list"></div>
+    </div>
+
+    <!-- MASI Mini Chart -->
+    <div class="sidebar-card">
+      <div class="sidebar-header">
+        <div class="sidebar-header-dot"></div>
+        MASI — Semaine
+      </div>
+      <div class="chart-container">
+        <svg class="chart-svg" viewBox="0 0 280 80" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#c9973f" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#c9973f" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path id="chart-area" fill="url(#chartGrad)"/>
+          <path id="chart-line" fill="none" stroke="#c9973f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="chart-labels">
+          <span>Lun</span><span>Mar</span><span>Mer</span><span>Jeu</span><span>Ven</span><span>Auj</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="sidebar-card">
+      <div class="sidebar-header">
+        <div class="sidebar-header-dot"></div>
+        Catégories
+      </div>
+      <div class="categories">
+        <div class="cat-btn active">Tout</div>
+        <div class="cat-btn">Banques</div>
+        <div class="cat-btn">Télécoms</div>
+        <div class="cat-btn">Immobilier</div>
+        <div class="cat-btn">Énergie</div>
+        <div class="cat-btn">BTP</div>
+        <div class="cat-btn">Agroalimentaire</div>
+        <div class="cat-btn">Assurances</div>
+      </div>
+    </div>
+
+    <!-- Newsletter -->
+    <div class="sidebar-card">
+      <div class="sidebar-header">
+        <div class="sidebar-header-dot"></div>
+        Newsletter Marchés
+      </div>
+      <div class="newsletter">
+        <p>Recevez chaque matin un résumé des marchés et des actualités clés de la Bourse de Casablanca.</p>
+        <div class="newsletter-form">
+          <input type="email" class="newsletter-input" placeholder="votre@email.com">
+          <button class="newsletter-btn">S'abonner gratuitement</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── FOOTER ─── -->
+<footer>
+  <div class="footer-inner">
+    <p class="footer-copy">© 2025 <strong>BourseInfo</strong> — Données à titre indicatif uniquement. Non affilié à Casablanca Stock Exchange.</p>
+    <div class="footer-links">
+      <a href="#">À propos</a>
+      <a href="#">Contact</a>
+      <a href="#">Mentions légales</a>
+      <a href="#">Confidentialité</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ─── DATA ───
+const news = [
+  {
+    id: 1,
+    title: "Le MASI franchit les 13 800 points, porté par les bancaires et les télécoms",
+    excerpt: "L'indice phare de la Bourse de Casablanca a clôturé en hausse de 0.87% ce jeudi, soutenu par de solides performances du secteur bancaire et une reprise des valeurs télécom. Attijariwafa Bank et Maroc Telecom ont été les principaux contributeurs à cette progression.",
+    date: "28 Mars 2025",
+    source: "Médias24",
+    url: "#",
+    tag: "Indices",
+    category: "indices"
+  },
+  {
+    id: 2,
+    title: "Attijariwafa Bank : résultats annuels 2024 en hausse de 12%, dividende maintenu",
+    excerpt: "La première banque marocaine annonce un bénéfice net de 7,1 milliards de dirhams pour l'exercice 2024, dépassant les attentes des analystes. Le conseil d'administration propose un dividende de 12 MAD par action.",
+    date: "27 Mars 2025",
+    source: "L'Économiste",
+    url: "#",
+    tag: "Sociétés",
+    category: "societes"
+  },
+  {
+    id: 3,
+    title: "Maroc Telecom maintient sa position de leader avec une ARPU en progression",
+    excerpt: "IAM publie ses résultats T1 2025 avec un chiffre d'affaires consolidé en légère hausse. La filiale marocaine reste solide malgré la pression concurrentielle sur le segment mobile.",
+    date: "27 Mars 2025",
+    source: "Boursier.ma",
+    url: "#",
+    tag: "Télécoms",
+    category: "societes"
+  },
+  {
+    id: 4,
+    title: "OPV Immorente Invest : l'offre est sursouscrite 4,7 fois — analyse des résultats",
+    excerpt: "La toute première OPCI cotée à la Bourse de Casablanca a rencontré un très fort engouement des investisseurs institutionnels et individuels. La cotation officielle est prévue pour le 10 avril prochain.",
+    date: "26 Mars 2025",
+    source: "Finances News",
+    url: "#",
+    tag: "IPO / OPV",
+    category: "ipo"
+  },
+  {
+    id: 5,
+    title: "BCP : revue à la hausse de l'objectif de cours par CFG Bank Research",
+    excerpt: "Les analystes de CFG Bank relèvent leur objectif de cours sur Banque Centrale Populaire à 385 MAD et maintiennent la recommandation 'Acheter' suite à la solidité des fondamentaux du groupe.",
+    date: "26 Mars 2025",
+    source: "CFG Research",
+    url: "#",
+    tag: "Analyse",
+    category: "analyse"
+  },
+  {
+    id: 6,
+    title: "HPS Payment revient en force après son recul du T4 — Perspectives 2025",
+    excerpt: "Le spécialiste marocain des solutions de paiement affiche un rebond technique significatif. Les prises de position des fonds étrangers renforcent l'intérêt pour cette valeur de croissance.",
+    date: "25 Mars 2025",
+    source: "Bourse & Marchés",
+    url: "#",
+    tag: "Technologie",
+    category: "societes"
+  },
+  {
+    id: 7,
+    title: "Ciments du Maroc : hausse des volumes vendue malgré la météo défavorable en T1",
+    excerpt: "Le cimentier affiche une résilience de son activité sur les trois premiers mois de l'année, soutenu par la demande liée aux projets d'infrastructure de l'État et aux chantiers du Mondial 2030.",
+    date: "25 Mars 2025",
+    source: "L'Économiste",
+    url: "#",
+    tag: "BTP",
+    category: "societes"
+  },
+  {
+    id: 8,
+    title: "Analyse sectorielle : le secteur bancaire marocain surperforme l'indice général en 2025",
+    excerpt: "Dans une note de recherche publiée ce mercredi, Attijari Global Research souligne la résilience du secteur bancaire et identifie plusieurs valeurs offrant une décote attractive par rapport à leurs pairs régionaux.",
+    date: "24 Mars 2025",
+    source: "Attijari Research",
+    url: "#",
+    tag: "Analyse",
+    category: "analyse"
+  },
+  {
+    id: 9,
+    title: "Lydec : vers une nouvelle tarification de l'eau après les négociations avec la mairie",
+    excerpt: "La société de distribution d'eau et d'électricité de Casablanca entame un nouveau cycle de renégociation avec les autorités locales, un événement scruté de près par les actionnaires.",
+    date: "24 Mars 2025",
+    source: "Médias24",
+    url: "#",
+    tag: "Services",
+    category: "societes"
+  },
+  {
+    id: 10,
+    title: "Managem accélère son expansion africaine avec une nouvelle acquisition au Gabon",
+    excerpt: "Le groupe minier annonce l'acquisition d'une participation majoritaire dans un projet aurifère gabonais, poursuivant sa stratégie de diversification géographique portée par le groupe ONA.",
+    date: "23 Mars 2025",
+    source: "Boursier.ma",
+    url: "#",
+    tag: "Mines",
+    category: "societes"
+  }
+];
+
+const movers = [
+  { name: "Attijariwafa", ticker: "ATW", price: "618.00", change: "+3.2%", dir: "up" },
+  { name: "HPS Payment", ticker: "HPS", price: "5 290.00", change: "+2.8%", dir: "up" },
+  { name: "Maroc Telecom", ticker: "IAM", price: "107.50", change: "+1.9%", dir: "up" },
+  { name: "BCP", ticker: "BCP", price: "345.00", change: "+1.5%", dir: "up" },
+  { name: "Sonasid", ticker: "SID", price: "425.00", change: "-1.1%", dir: "down" },
+  { name: "Addoha", ticker: "ADH", price: "18.70", change: "-0.9%", dir: "down" },
+];
+
+const tickerData = [
+  { name: "MASI", price: "13 842.17", change: "+0.87%", dir: "up" },
+  { name: "MADEX", price: "11 294.55", change: "+0.64%", dir: "up" },
+  { name: "ATW", price: "618.00", change: "+3.2%", dir: "up" },
+  { name: "IAM", price: "107.50", change: "+1.9%", dir: "up" },
+  { name: "BCP", price: "345.00", change: "+1.5%", dir: "up" },
+  { name: "HPS", price: "5 290", change: "+2.8%", dir: "up" },
+  { name: "CMA", price: "1 482", change: "+0.5%", dir: "up" },
+  { name: "SID", price: "425.00", change: "-1.1%", dir: "down" },
+  { name: "ADH", price: "18.70", change: "-0.9%", dir: "down" },
+  { name: "MNG", price: "310.00", change: "+1.2%", dir: "up" },
+];
+
+// ─── INIT TICKER ───
+function buildTicker() {
+  const track = document.getElementById('ticker');
+  const items = [...tickerData, ...tickerData]; // duplicate for seamless loop
+  track.innerHTML = items.map(t => `
+    <div class="ticker-item">
+      <span class="ticker-name">${t.name}</span>
+      <span class="ticker-price">${t.price}</span>
+      <span class="${t.dir}">${t.change}</span>
+    </div>
+  `).join('');
+}
+
+// ─── INIT FEATURED ───
+function buildFeatured() {
+  const a = news[0];
+  document.getElementById('feat-title').textContent = a.title;
+  document.getElementById('feat-excerpt').textContent = a.excerpt;
+  document.getElementById('feat-source').textContent = a.source;
+  document.getElementById('feat-date').textContent = a.date;
+  document.getElementById('feat-tag').textContent = a.tag;
+}
+
+// ─── BUILD NEWS CARDS ───
+let currentFilter = 'all';
+
+function buildNewsList(filter = 'all') {
+  const list = document.getElementById('news-list');
+  const items = filter === 'all' ? news.slice(1) : news.slice(1).filter(n => n.category === filter);
+
+  list.innerHTML = items.map((a, i) => `
+    <a class="news-card" href="${a.url}" target="_blank" rel="noopener">
+      <div class="news-number">${String(i + 1).padStart(2, '0')}</div>
+      <div class="news-content">
+        <h3>${a.title}</h3>
+        <div class="news-excerpt">${a.excerpt}</div>
+        <div class="article-meta">
+          <span class="meta-source">${a.source}</span>
+          <span class="meta-dot">•</span>
+          <span class="meta-date">${a.date}</span>
+          <span class="meta-tag">${a.tag}</span>
+        </div>
+      </div>
+      <div class="news-arrow">›</div>
+    </a>
+  `).join('') || '<p style="color:var(--text-dim);padding:20px;font-size:13px;">Aucun article dans cette catégorie.</p>';
+}
+
+// ─── FILTER ───
+function filterNews(cat, el) {
+  document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  buildNewsList(cat);
+}
+
+// ─── MOVERS ───
+function buildMovers() {
+  document.getElementById('movers-list').innerHTML = movers.map(m => `
+    <div class="mover-row">
+      <div>
+        <div class="mover-name">${m.name}</div>
+        <div class="mover-ticker">${m.ticker}</div>
+      </div>
+      <div class="mover-price">${m.price}</div>
+      <div class="mover-change ${m.dir}">${m.change}</div>
+    </div>
+  `).join('');
+}
+
+// ─── MINI CHART ───
+function buildChart() {
+  const points = [13640, 13590, 13720, 13680, 13750, 13842];
+  const w = 280, h = 80, pad = 4;
+  const min = Math.min(...points) - 40;
+  const max = Math.max(...points) + 20;
+  const xs = points.map((_, i) => pad + i * ((w - pad * 2) / (points.length - 1)));
+  const ys = points.map(v => h - pad - ((v - min) / (max - min)) * (h - pad * 2));
+
+  const linePts = xs.map((x, i) => `${i === 0 ? 'M' : 'L'}${x},${ys[i]}`).join(' ');
+  const areaPts = `${linePts} L${xs[xs.length - 1]},${h} L${xs[0]},${h} Z`;
+
+  document.getElementById('chart-line').setAttribute('d', linePts);
+  document.getElementById('chart-area').setAttribute('d', areaPts);
+}
+
+// ─── OPEN ARTICLE ───
+function openArticle(a) {
+  if (a.url && a.url !== '#') window.open(a.url, '_blank');
+}
+
+// ─── CATEGORY BUTTONS ───
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+  });
+});
+
+// ─── START ───
+buildTicker();
+buildFeatured();
+buildNewsList();
+buildMovers();
+buildChart();
+</script>
+</body>
+</html>
